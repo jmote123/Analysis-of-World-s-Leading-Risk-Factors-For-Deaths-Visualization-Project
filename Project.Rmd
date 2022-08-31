@@ -1,0 +1,206 @@
+---
+title: "STAT 515 Project Group 8(Word)"
+author: "Kushal,Sushanth,Jyoti,Vasudev"
+date: "10/03/2021"
+output: word_document
+---
+
+
+## Including Plots
+Installed packages for the project
+Please set the directory to the file downloaded 
+```{r}
+setwd("D:/STAT 515 Project")
+install.packages("gapminder")
+install.packages("highcharter")
+install.packages("tidyr")
+install.packages("tidyverse")
+install.packages("ggplot2")
+install.packages("devtools")
+require(devtools)
+install_github('ramnathv/rCharts',force = TRUE)
+```
+```{r}
+library(ggplot2)
+```
+
+
+## Importing Data Sets to Data Frames
+Please Load The DataSet from your working Directory
+```{r}
+source("hw.R")
+world <- read.csv("World.csv", sep=",")
+World_ <- read.csv("Deaths_B.csv",sep=",")
+SDI <- read.csv(file = "Book2.csv")
+Deaths <- read.csv("risk_factor_final.csv")
+```
+
+## Data Sorrting
+Run this sorting process before runing the plots
+```{r}
+b<- sum(world$Deaths_by_unsafe_sex)
+b<-append(b,sum(world$Deaths_by_low_physical_activity))
+b<-append(b,sum(world$Deaths_by_smoking))
+b<-append(b,sum(world$Deaths_by_alcohol_consumption))
+b<-append(b,sum(world$Deaths_by_drug_use))
+b<-append(b,sum(world$Deaths_by_diabetes))
+b<-append(b,sum(world$Deaths._by_high._blood_pressure))
+b<-append(b,sum(world$Deaths_by_unsafe_water))
+b<-append(b,sum(world$Deaths_by_unsafe_sanitation))
+b<-append(b,sum(world$Deaths_by_air_pollution))
+
+
+x<-c("unsafe_sex","Low_physical_activity","Smoking","Alcohol","Drug_use","Diabetes","High_BP","Unsafe_water","Unsafe_sanitation","Air_pollution")
+
+riskfact <- data.frame(x,b)
+```
+## Data Cleaning 
+Run this cleaning process before runing the plots
+```{r}
+world$Deaths_by_unsafe_sex=round(world$Deaths_by_unsafe_sex,digits=0)
+world$Deaths_by_low_physical_activity=round(world$Deaths_by_low_physical_activity,digits =0)
+world$Deaths_by_smoking=round(world$Deaths_by_smoking,digits = 0)
+world$Deaths_by_alcohol_consumption=round(world$Deaths_by_alcohol_consumption,digits = 0)
+world$Deaths_by_drug_use=round(world$Deaths_by_drug_use,digits = 0)
+world$Deaths_by_diabetes=round(world$Deaths_by_diabetes,digits=0)
+world$Deaths._by_high._blood_pressure=round(world$Deaths._by_high._blood_pressure,digits = 0)
+world$Deaths_by_unsafe_water=round(world$Deaths_by_unsafe_water,digits = 0)
+world$Deaths_by_unsafe_sanitation=round(world$Deaths_by_unsafe_sanitation,digits = 0)
+world$Deaths_by_air_pollution=round(world$Deaths_by_air_pollution,digits = 0)
+```
+## Figure1: Total number of deaths by risk factors
+```{r}
+ggplot(data=riskfact, aes(x=reorder(x,b), y=b,scientific= FALSE))+ 
+  geom_bar(stat="identity", color="black",fill="#69b3a2")+
+  scale_y_continuous(breaks=c(20000000,40000000,60000000,80000000,100000000,120000000,140000000,160000000),
+                     labels=c('20000000' = '20m','40000000' = '40m','60000000'='60m','80000000'='80m','100000000'='100m','120000000'='120m','140000000'='140m','160000000'='160m'))+
+   coord_flip()+labs(x="RISK FACTORS",y="NUMBER OF DEATHS",title="DEATHS DUE TO ALL THE RISK FACTORS")+hw
+```
+
+## Figure2: Yearly death caused by different risk factors
+
+```{r}
+#scatter plot
+library(highcharter)
+data(gapminder, package = "gapminder")
+library(tidyr)
+library(tidyverse)
+
+# generate graph
+h <- highchart() %>% 
+  hc_xAxis(categories = world$Year) %>% 
+  hc_add_series(name = "Smoking", 
+                data = world$Deaths_by_smoking) %>% 
+  hc_add_series(name = "Unsafe sex", 
+                data = world$Deaths_by_unsafe_sex) %>%
+  hc_add_series(name = "Low Physical activity", 
+                data = world$Deaths_by_low_physical_activity) %>%
+  hc_add_series(name = "Alcohol", 
+                data = world$Deaths_by_alcohol_consumption) %>%
+  hc_add_series(name = "Drug Use", 
+                data = world$Deaths_by_drug_use)%>%
+  hc_add_series(name = "Diabeties", 
+                data = world$Deaths_by_diabetes)%>%
+  hc_add_series(name = "High Blood Pressure", 
+                data = world$Deaths._by_high._blood_pressure)%>%
+  hc_add_series(name = "Unsafe Water", 
+                data = world$Deaths_by_unsafe_water)%>%
+  hc_add_series(name = "Unsafe Sanitation", 
+                data = world$Deaths_by_unsafe_sanitation)%>%
+  hc_add_series(name = "Air polution", 
+                data = world$Deaths_by_air_pollution)%>%
+  hc_title(text = "Trends Of Various Risk Factors",
+           margin = 20, 
+           align = "center",
+           style = list(color = "steelblue")) %>% 
+  hc_subtitle(text = "2000 To 2017",
+              align = "center",
+              style = list(color = "#2b908f", 
+                           fontWeight = "bold")) %>% 
+  hc_legend(align = "right", 
+            verticalAlign = "top",
+            layout = "vertical", 
+            x = 0, 
+            y = 100) %>%
+  hc_tooltip(crosshairs = TRUE, 
+             backgroundColor = "#fabea5",
+             shared = TRUE, 
+             borderWidth = 4) %>% 
+  hc_exporting(enabled = TRUE)%>%
+  hc_xAxis(title = list(text = "Years"),
+           alternateGridColor = "#cccccc",size=15)%>%
+  hc_yAxis(title = list(text ="Deaths"))
+h
+```
+
+## Figure 3: Trend of deaths in countries with different SDI
+
+```{r}
+library(rCharts)
+library(reshape)
+data(SDI,package = 'ggplot2')
+SDI$Deaths =  round(SDI$Deaths)
+SDI$Deaths=  as.numeric(SDI$Deaths)
+n3 <- nPlot(Deaths ~ Country,group = 'Risk_factor',data = SDI,type = 'multiBarHorizontalChart',height=500,width=800)
+n3$addParams(width = 600, height = 300, dom = 'chart1',title = "Percentage of Employed who are Senior Managers")
+n3
+```
+
+## Figure 4: Perspective of the Risk Factors. (Deaths in millions)
+
+```{r}
+library(dplyr)
+library(tidyverse)
+library(highcharter) 
+
+
+
+World_$Deaths_A =  round(World_$Deaths_A)
+World_$Deaths_A =  as.numeric(World_$Deaths_A)
+
+v1 <- data_to_boxplot(world , var=Deaths_by_smoking   ,name = "Smoking")
+v2 <- data_to_boxplot(world , var=Deaths_by_unsafe_sex   ,name = "Unsafe Sex")
+v3 <- data_to_boxplot(world , var=Deaths_by_low_physical_activity   ,name = "Low Physical Activity")
+v4 <- data_to_boxplot(world , var=Deaths_by_drug_use   ,name = "Drug Use")
+v5 <- data_to_boxplot(world , var=Deaths_by_diabetes   ,name = "Diabetes")
+v6 <- data_to_boxplot(world , var=Deaths._by_high._blood_pressure   ,name = "High Blood Pressure")
+v7 <- data_to_boxplot(world , var=Deaths_by_unsafe_water   ,name = "Unsafe Water")
+v8 <- data_to_boxplot(world , var=Deaths_by_alcohol_consumption   ,name = "Alcohol Consumption")
+v9 <- data_to_boxplot(world , var=Deaths_by_unsafe_sanitation   ,name = "Unsafe Sanitation")
+v10 <- data_to_boxplot(world , var=Deaths_by_air_pollution   ,name = "Air Pollution")
+
+highchart() %>%  hc_xAxis(title = list(text = "Risk Factors",fontWeight="bold",categories = world$Country)) %>%
+  hc_yAxis(title=list(text="Deaths",fontWeight="bold"))%>%
+  hc_add_series_list(v1)%>%
+  hc_add_series_list(v2)%>%
+  hc_add_series_list(v3)%>%
+  hc_add_series_list(v4)%>%
+  hc_add_series_list(v5)%>%
+  hc_add_series_list(v6)%>%
+  hc_add_series_list(v7)%>%
+  hc_add_series_list(v8)%>%
+  hc_add_series_list(v9)%>%
+  hc_add_series_list(v10)%>%
+    hc_title(text = "Perspective Of The Risk Factors(In Millions)",
+           margin = 20, 
+           align = "center",
+           style = list(color = "steelblue")) %>% 
+  hc_subtitle(text = "Box Plot For Risk Factor",
+              align = "center",
+              style = list(color = "#2b908f", 
+                           fontWeight = "bold")) %>% 
+  hc_legend(align = "right", 
+            verticalAlign = "top",
+            layout = "vertical", 
+            x = 0, 
+            y = 100) %>%
+  hc_exporting(enabled = TRUE)%>%
+  hc_xAxis(title = list(text = "Risk Factors"),size=15)%>%
+  hc_yAxis(title = list(text ="Deaths"))
+```
+
+
+
+
+
+
